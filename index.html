@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 <style>
   :root {
     --ink: #060912;
@@ -152,7 +153,7 @@
 <div class="wrap">
 
   <header>
-    <div class="eyebrow">Rete buiometro &middot; Media Montagna - Astrobricchi </div>
+    <div class="eyebrow">Rete buiometro &middot; ARPAL / AMM Liguria</div>
     <h1>Crocefieschi</h1>
     <div class="coords">44.393&deg;N&nbsp; 8.975&deg;E &middot; 850&nbsp;m s.l.m.</div>
 
@@ -193,33 +194,89 @@
   // --- CONFIGURAZIONE: da compilare dopo aver creato il progetto Supabase ---
   const SUPABASE_URL = "https://vwqrpwijdxynbdnpgonh.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3cXJwd2lqZHh5bmJkbnBnb25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MzM3ODEsImV4cCI6MjEwMzMwOTc4MX0.ITL7a8eud3EWwwHPjTr7JmosFjLJMGYrFRjRiL-Mi7E";
+  
   const STATION_ID = "crocefieschi";
   // ---------------------------------------------------------------------
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  const LAT = 44.3934;
+  const LON = 8.97509;
+
+  // Stessa scala di colori usata in plot_2nights.py (bortle_zones)
+  const bortleZones = [
+    [21.75, 22.00, 'Excellent Dark', 'rgba(0,19,33,0.35)'],
+    [21.60, 21.75, 'Dark', 'rgba(33,61,101,0.30)'],
+    [21.30, 21.60, 'Rural', 'rgba(65,104,163,0.28)'],
+    [20.30, 21.30, 'Rural/suburban', 'rgba(96,142,219,0.24)'],
+    [19.25, 20.30, 'Suburban', 'rgba(120,172,247,0.20)'],
+    [18.50, 19.25, 'Bright suburban', 'rgba(148,198,249,0.18)'],
+    [18.00, 18.50, 'Suburban/city', 'rgba(185,220,250,0.15)'],
+    [14.00, 18.00, 'City', 'rgba(231,245,254,0.10)'],
+  ];
+
+  function bortleShapes() {
+    return bortleZones.map(([y0, y1, label, color]) => ({
+      type: 'rect', xref: 'paper', x0: 0, x1: 1,
+      yref: 'y', y0, y1,
+      fillcolor: color, line: { width: 0 }, layer: 'below',
+    }));
+  }
+
   const plotLayout = {
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(0,0,0,0)",
     font: { color: "#eaf0fc", family: "Inter, sans-serif" },
-    margin: { t: 10, r: 10, b: 40, l: 50 },
-    xaxis: { gridcolor: "rgba(207,232,255,0.08)" },
-    yaxis: {
-      title: "mag/arcsec&sup2;",
+    margin: { t: 10, r: 50, b: 40, l: 55 },
+    shapes: bortleShapes(),
+    xaxis: {
       gridcolor: "rgba(207,232,255,0.08)",
-      autorange: "reversed" // piu' scuro il cielo, piu' alto il valore: lo mettiamo in alto nel grafico
+      tickformat: "%H",
+      dtick: 7200000, // 2 ore, come HourLocator(interval=2) in Python
     },
+    yaxis: {
+      title: "MPAS [mag/arcsec\u00b2]",
+      gridcolor: "rgba(207,232,255,0.08)",
+      range: [14, 22],
+    },
+    yaxis2: {
+      title: "Altitudine luna (\u00b0)",
+      overlaying: "y",
+      side: "right",
+      range: [0, 90],
+      gridcolor: "rgba(0,0,0,0)",
+    },
+    legend: { orientation: "h", x: 0, y: 1.12 },
   };
   const plotConfig = { displayModeBar: false, responsive: true };
 
-  function traceFrom(rows) {
-    return {
+  function moonAltitudeSeries(rows) {
+    return rows.map(r => {
+      const t = new Date(r.ts);
+      const pos = SunCalc.getMoonPosition(t, LAT, LON);
+      return pos.altitude * 180 / Math.PI;
+    });
+  }
+
+  function tracesFrom(rows) {
+    const sqmTrace = {
       x: rows.map(r => r.ts),
       y: rows.map(r => r.sqm),
       type: "scatter",
       mode: "lines",
-      line: { color: "#cfe8ff", width: 1.5 },
+      name: "SQM",
+      line: { color: "#1c3fa8", width: 2 },
     };
+    const moonTrace = {
+      x: rows.map(r => r.ts),
+      y: moonAltitudeSeries(rows),
+      type: "scatter",
+      mode: "lines",
+      name: "Luna",
+      yaxis: "y2",
+      line: { color: "#8291b8", width: 1, dash: "dash" },
+    };
+    return [sqmTrace, moonTrace];
   }
 
   async function loadLive() {
@@ -250,7 +307,7 @@
       .order("ts", { ascending: true });
 
     if (error) { console.error(error); return; }
-    Plotly.newPlot("chart-recent", [traceFrom(data || [])], plotLayout, plotConfig);
+    Plotly.newPlot("chart-recent", tracesFrom(data || []), plotLayout, plotConfig);
   }
 
   async function loadHistory(startDate, endDate) {
@@ -263,7 +320,7 @@
       .order("ts", { ascending: true });
 
     if (error) { console.error(error); return; }
-    Plotly.newPlot("chart-history", [traceFrom(data || [])], plotLayout, plotConfig);
+    Plotly.newPlot("chart-history", tracesFrom(data || []), plotLayout, plotConfig);
   }
 
   document.getElementById("range-load").addEventListener("click", () => {
