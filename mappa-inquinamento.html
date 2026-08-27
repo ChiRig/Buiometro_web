@@ -64,15 +64,39 @@
     box-shadow: 0 5px 22px rgba(20, 35, 60, 0.04);
   }
   #pollution-map { height: 480px; border-radius: 10px; overflow: hidden; }
-  .placeholder-note {
-    background: var(--soft);
-    border: 1px dashed var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.6;
+
+  .layer-controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
   }
+  .layer-controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  .info-card {
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 16px;
+    display: none;
+  }
+  .info-card.visible { display: block; }
+  .info-card .name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    margin-bottom: 4px;
+  }
+  .info-card .stats {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .info-card img { width: 100%; border-radius: 8px; display: block; }
+
   footer {
     margin-top: 60px;
     padding-top: 22px;
@@ -89,7 +113,7 @@
   <header>
     <div class="eyebrow">Modello · VIIRS + propagazione</div>
     <h1>Inquinamento luminoso</h1>
-    <div class="coords">Mappa statica della luminosità del cielo modellata su tutta la Liguria</div>
+    <div class="coords">Copertura regionale modellata · calibrata sui dati reali della rete buiometro</div>
     <nav style="margin-top:14px;">
       <a href="index.html">← Torna al buiometro</a>
     </nav>
@@ -98,47 +122,102 @@
   <section>
     <h2>Mappa</h2>
     <div class="section-note">
-      Copertura regionale calcolata dal modello (dati satellitari VIIRS + modello di propagazione
-      Cinzano &amp; Falchi, calibrato sui dati reali della rete buiometro).
+      Passa da radianza satellitare (VIIRS) a luminosità del cielo modellata (SQM), e clicca un
+      punto buiometro per vedere il landscape con la sky brightness stimata su tutto il cielo in quel punto.
     </div>
     <div class="panel">
+      <div class="layer-controls">
+        <label><input type="radio" name="layer" value="viirs" checked> Radianza VIIRS</label>
+        <label><input type="radio" name="layer" value="sqm"> Sky brightness (SQM)</label>
+      </div>
       <div id="pollution-map"></div>
-    </div>
-  </section>
 
-  <section>
-    <div class="placeholder-note">
-      <strong>Questa pagina è pronta ma non ancora collegata al modello.</strong><br><br>
-      Quando esporti un nuovo calcolo dal modello Flask (VIIRS + propagazione), i due modi più
-      semplici per farlo comparire qui, restando dentro lo stesso sistema statico Vercel+GitHub:
-      <br><br>
-      1) <strong>Overlay come immagine georeferenziata</strong>: esporta il risultato come PNG con i
-      quattro angoli in lat/lon noti, poi <code>L.imageOverlay(url, bounds).addTo(map)</code> — poche
-      righe di JS, nessun formato dati particolare da gestire.<br><br>
-      2) <strong>Overlay come GeoJSON/vettoriale</strong>: se il modello produce un grigliato di cella
-      con valori, esporti un file <code>.geojson</code> (anche su Supabase Storage, così resta
-      pubblico e versionato come i dati del buiometro) e lo carichi con
-      <code>L.geoJSON(data, {style: ...}).addTo(map)</code>, colorando ogni cella in base al valore.
-      <br><br>
-      In entrambi i casi il file va rigenerato e ripubblicato ogni volta che aggiorni il modello — non
-      è in tempo reale come i dati del buiometro, ma resta comunque tutto ospitato sullo stesso
-      dominio e la stessa pipeline GitHub → Vercel.
+      <div class="info-card" id="point-info">
+        <div class="name" id="point-name">—</div>
+        <div class="stats" id="point-stats">—</div>
+        <img id="point-image" src="" alt="Landscape sky brightness">
+      </div>
     </div>
   </section>
 
   <footer>
-    Modello sviluppato su dati VIIRS e calibrato sui dati della rete buiometro (Crocefieschi e stazioni future).
+    Modello VIIRS + propagazione (Cinzano &amp; Falchi 2012), calibrato sui dati reali della rete buiometro
+    (Crocefieschi e stazioni future). Landscape ed etichette Bortle calcolati una tantum e salvati come immagini
+    statiche — non aggiornati in tempo reale.
   </footer>
 
 </div>
 
 <script>
-  const map = L.map("pollution-map", { scrollWheelZoom: false }).setView([44.35, 8.9], 8);
+  const map = L.map("pollution-map").setView([44.35, 8.9], 8);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
-  // L'overlay del modello (immagine o GeoJSON) va aggiunto qui quando pronto.
+
+  let viirsLayer = null;
+  let sqmLayer = null;
+
+  async function loadLayers() {
+    try {
+      const res = await fetch("static/layer_bounds.json");
+      const { image_bounds } = await res.json();
+
+      viirsLayer = L.imageOverlay("static/viirs_liguria.png", image_bounds, { opacity: 0.85 }).addTo(map);
+      sqmLayer = L.imageOverlay("static/sqm_liguria.png", image_bounds, { opacity: 0.85 });
+
+      map.fitBounds(image_bounds);
+    } catch (e) {
+      console.error("Impossibile caricare i layer:", e);
+    }
+  }
+
+  document.querySelectorAll('input[name="layer"]').forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      if (!viirsLayer || !sqmLayer) return;
+      if (e.target.value === "viirs") {
+        map.removeLayer(sqmLayer);
+        viirsLayer.addTo(map);
+      } else {
+        map.removeLayer(viirsLayer);
+        sqmLayer.addTo(map);
+      }
+    });
+  });
+
+  async function loadPoints() {
+    try {
+      const res = await fetch("static/points.json");
+      const points = await res.json();
+
+      points.forEach(point => {
+        const marker = L.circleMarker([point.lat, point.lon], {
+          radius: 7,
+          weight: 2,
+          color: "#1c3fa8",
+          fillColor: "#1c3fa8",
+          fillOpacity: 0.8,
+        }).addTo(map);
+
+        marker.bindTooltip(`${point.nome} · SQM ${point.sqm}`);
+        marker.on("click", () => showPoint(point));
+      });
+    } catch (e) {
+      console.error("Impossibile caricare i punti buiometro:", e);
+    }
+  }
+
+  function showPoint(point) {
+    document.getElementById("point-name").textContent = point.nome;
+    document.getElementById("point-stats").textContent =
+      `SQM zenitale ${point.sqm} mag/arcsec² · Bortle ${point.bortle ?? "—"} · ` +
+      `${point.lat.toFixed(4)}° N, ${point.lon.toFixed(4)}° E`;
+    document.getElementById("point-image").src = "static/" + point.landscape_image;
+    document.getElementById("point-info").classList.add("visible");
+  }
+
+  loadLayers();
+  loadPoints();
 </script>
 </body>
 </html>

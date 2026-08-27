@@ -1,0 +1,236 @@
+[
+  {
+    "id": "rifugio-allavena",
+    "nome": "Rifugio Allavena",
+    "lat": 43.988774,
+    "lon": 7.683671,
+    "sqm": 21.64,
+    "bortle": 4,
+    "landscape_image": "landscapes/rifugio-allavena.png"
+  },
+  {
+    "id": "madonna-della-neve",
+    "nome": "Madonna della Neve",
+    "lat": 44.09882,
+    "lon": 7.98036,
+    "sqm": 21.36,
+    "bortle": 4,
+    "landscape_image": "landscapes/madonna-della-neve.png"
+  },
+  {
+    "id": "monte-terca",
+    "nome": "Monte Terca",
+    "lat": 43.909673,
+    "lon": 7.589573,
+    "sqm": 21.51,
+    "bortle": 4,
+    "landscape_image": "landscapes/monte-terca.png"
+  },
+  {
+    "id": "rifugio-pian-delle-bosse",
+    "nome": "Rifugio Pian delle Bosse",
+    "lat": 44.174271,
+    "lon": 8.207157,
+    "sqm": 21.03,
+    "bortle": 5,
+    "landscape_image": "landscapes/rifugio-pian-delle-bosse.png"
+  },
+  {
+    "id": "capo-noli",
+    "nome": "Capo Noli",
+    "lat": 44.193945,
+    "lon": 8.41804,
+    "sqm": 19.94,
+    "bortle": 6,
+    "landscape_image": "landscapes/capo-noli.png"
+  },
+  {
+    "id": "monte-bergone",
+    "nome": "Monte Bergone",
+    "lat": 44.499494,
+    "lon": 8.294823,
+    "sqm": 20.83,
+    "bortle": 5,
+    "landscape_image": "landscapes/monte-bergone.png"
+  },
+  {
+    "id": "monte-avze",
+    "nome": "Monte Avze",
+    "lat": 44.453442,
+    "lon": 8.524522,
+    "sqm": 21.29,
+    "bortle": 4,
+    "landscape_image": "landscapes/monte-avze.png"
+  },
+  {
+    "id": "rifugio-monte-antola",
+    "nome": "Rifugio Monte Antola",
+    "lat": 44.5676482,
+    "lon": 9.1475906,
+    "sqm": 21.34,
+    "bortle": 4,
+    "landscape_image": "landscapes/rifugio-monte-antola.png"
+  },
+  {
+    "id": "semaforo-vecchio-prtofino",
+    "nome": "Semaforo Vecchio Prtofino",
+    "lat": 44.3268336,
+    "lon": 9.1683753,
+    "sqm": 20.31,
+    "bortle": 6,
+    "landscape_image": "landscapes/semaforo-vecchio-prtofino.png"
+  },
+  {
+    "id": "monte-reale",
+    "nome": "Monte Reale",
+    "lat": 44.62571,
+    "lon": 8.96957,
+    "sqm": 20.48,
+    "bortle": 6,
+    "landscape_image": "landscapes/monte-reale.png"
+  },
+  {
+    "id": "monte-aiona",
+    "nome": "Monte Aiona",
+    "lat": 44.481809,
+    "lon": 9.442321,
+    "sqm": 21.46,
+    "bortle": 4,
+    "landscape_image": "landscapes/monte-aiona.png"
+  },
+  {
+    "id": "piani-di-lerca",
+    "nome": "Piani di Lerca",
+    "lat": 44.439859,
+    "lon": 8.639733,
+    "sqm": 21.11,
+    "bortle": 5,
+    "landscape_image": "landscapes/piani-di-lerca.png"
+  },
+  {
+    "id": "prati-preseghin",
+    "nome": "Prati Preseghin",
+    "lat": 44.555661,
+    "lon": 8.848533,
+    "sqm": 20.76,
+    "bortle": 5,
+    "landscape_image": "landscapes/prati-preseghin.png"
+  },
+  {
+    "id": "bric-dell-orologio",
+    "nome": "Bric dell'Orologio",
+    "lat": 44.498949,
+    "lon": 8.81067,
+    "sqm": 20.79,
+    "bortle": 5,
+    "landscape_image": "landscapes/bric-dell-orologio.png"
+  },
+  {
+    "id": "monte-paviglione",
+    "nome": "Monte Paviglione",
+    "lat": 44.524294,
+    "lon": 8.676265,
+    "sqm": 21.09,
+    "bortle": 5,
+    "landscape_image": "landscapes/monte-paviglione.png"
+  },
+  {
+    "id": "rifugio-muzzerone",
+    "nome": "Rifugio Muzzerone",
+    "lat": 44.055292,
+    "lon": 9.83007,
+    "sqm": 19.96,
+    "bortle": 6,
+    "landscape_image": "landscapes/rifugio-muzzerone.png"
+  },
+  {
+    "id": "monte-cornoviglio",
+    "nome": "Monte Cornoviglio",
+    "lat": 44.267748,
+    "lon": 9.847677,
+    "sqm": 21.16,
+    "bortle": 5,
+    "landscape_image": "landscapes/monte-cornoviglio.png"
+  },
+  {
+    "id": "monte-porcile",
+    "nome": "Monte Porcile",
+    "lat": 44.346852,
+    "lon": 9.51075,
+    "sqm": 21.29,
+    "bortle": 4,
+    "landscape_image": "landscapes/monte-porcile.png"
+  },
+  {
+    "id": "monte-gottero",
+    "nome": "Monte Gottero",
+    "lat": 44.3633,
+    "lon": 9.678425,
+    "sqm": 21.52,
+    "bortle": 4,
+    "landscape_image": "landscapes/monte-gottero.png"
+  },
+  {
+    "id": "punta-mesco",
+    "nome": "Punta Mesco",
+    "lat": 44.140839,
+    "lon": 9.633294,
+    "sqm": 20.83,
+    "bortle": 5,
+    "landscape_image": "landscapes/punta-mesco.png"
+  },
+  {
+    "id": "lago-osiglia",
+    "nome": "Lago Osiglia",
+    "lat": 44.300412,
+    "lon": 8.196404,
+    "sqm": 21.01,
+    "bortle": 5,
+    "landscape_image": "landscapes/lago-osiglia.png"
+  },
+  {
+    "id": "monte-cornua",
+    "nome": "Monte Cornua",
+    "lat": 44.4030984,
+    "lon": 9.0926451,
+    "sqm": 20.29,
+    "bortle": 6,
+    "landscape_image": "landscapes/monte-cornua.png"
+  },
+  {
+    "id": "casa",
+    "nome": "Casa",
+    "lat": 44.393387,
+    "lon": 8.97469,
+    "sqm": 17.82,
+    "bortle": 9,
+    "landscape_image": "landscapes/casa.png"
+  },
+  {
+    "id": "monte-proventino",
+    "nome": "Monte Proventino",
+    "lat": 44.5653366,
+    "lon": 9.04257,
+    "sqm": 20.59,
+    "bortle": 5,
+    "landscape_image": "landscapes/monte-proventino.png"
+  },
+  {
+    "id": "lago-di-giacopiane",
+    "nome": "Lago di Giacopiane",
+    "lat": 44.462241,
+    "lon": 9.385916,
+    "sqm": 20.88,
+    "bortle": 5,
+    "landscape_image": "landscapes/lago-di-giacopiane.png"
+  },
+  {
+    "id": "pietranera",
+    "nome": " Pietranera",
+    "lat": 44.582801,
+    "lon": 9.300731,
+    "sqm": 20.85,
+    "bortle": 5,
+    "landscape_image": "landscapes/pietranera.png"
+  }
+]
