@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inquinamento luminoso in Liguria — mappa VIIRS</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root {
+    --blue: #1c3fa8;
+    --ink: #172033;
+    --muted: #697386;
+    --border: #dfe4ec;
+    --panel: #ffffff;
+    --page: #ffffff;
+    --soft: #f6f8fb;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 72px; }
+  header { padding: 48px 0 28px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 48px);
+    margin: 8px 0 4px;
+    letter-spacing: -0.025em;
+  }
+  .coords { font-family: 'JetBrains Mono', monospace; color: var(--muted); font-size: 13px; }
+  nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  section { margin-top: 40px; }
+  h2 { font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 700; margin: 0 0 4px; }
+  .section-note { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 5px 22px rgba(20, 35, 60, 0.04);
+  }
+  #pollution-map { height: 480px; border-radius: 10px; overflow: hidden; }
+  .placeholder-note {
+    background: var(--soft);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  footer {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Modello · VIIRS + propagazione</div>
+    <h1>Inquinamento luminoso</h1>
+    <div class="coords">Mappa statica della luminosità del cielo modellata su tutta la Liguria</div>
+    <nav style="margin-top:14px;">
+      <a href="index.html">← Torna al buiometro</a>
+    </nav>
+  </header>
+
+  <section>
+    <h2>Mappa</h2>
+    <div class="section-note">
+      Copertura regionale calcolata dal modello (dati satellitari VIIRS + modello di propagazione
+      Cinzano &amp; Falchi, calibrato sui dati reali della rete buiometro).
+    </div>
+    <div class="panel">
+      <div id="pollution-map"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="placeholder-note">
+      <strong>Questa pagina è pronta ma non ancora collegata al modello.</strong><br><br>
+      Quando esporti un nuovo calcolo dal modello Flask (VIIRS + propagazione), i due modi più
+      semplici per farlo comparire qui, restando dentro lo stesso sistema statico Vercel+GitHub:
+      <br><br>
+      1) <strong>Overlay come immagine georeferenziata</strong>: esporta il risultato come PNG con i
+      quattro angoli in lat/lon noti, poi <code>L.imageOverlay(url, bounds).addTo(map)</code> — poche
+      righe di JS, nessun formato dati particolare da gestire.<br><br>
+      2) <strong>Overlay come GeoJSON/vettoriale</strong>: se il modello produce un grigliato di cella
+      con valori, esporti un file <code>.geojson</code> (anche su Supabase Storage, così resta
+      pubblico e versionato come i dati del buiometro) e lo carichi con
+      <code>L.geoJSON(data, {style: ...}).addTo(map)</code>, colorando ogni cella in base al valore.
+      <br><br>
+      In entrambi i casi il file va rigenerato e ripubblicato ogni volta che aggiorni il modello — non
+      è in tempo reale come i dati del buiometro, ma resta comunque tutto ospitato sullo stesso
+      dominio e la stessa pipeline GitHub → Vercel.
+    </div>
+  </section>
+
+  <footer>
+    Modello sviluppato su dati VIIRS e calibrato sui dati della rete buiometro (Crocefieschi e stazioni future).
+  </footer>
+
+</div>
+
+<script>
+  const map = L.map("pollution-map", { scrollWheelZoom: false }).setView([44.35, 8.9], 8);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  // L'overlay del modello (immagine o GeoJSON) va aggiunto qui quando pronto.
+</script>
+</body>
+</html>

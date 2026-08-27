@@ -3,118 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Buiometro Crocefieschi — luminosità del cielo notturno</title>
-
+<title>Buiometro Crocefieschi &mdash; luminosit&agrave; del cielo notturno</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
   :root {
-    --blue: #1c3fa8;
-    --blue-light: #edf3ff;
-    --ink: #172033;
-    --muted: #697386;
-    --border: #dfe4ec;
-    --panel: #ffffff;
-    --page: #ffffff;
-    --soft: #f6f8fb;
+    --ink: #060912;
+    --deep: #0b1224;
+    --horizon: #1b2a4d;
+    --text: #eaf0fc;
+    --muted: #7e8baf;
+    --starlight: #cfe8ff;
   }
-
   * { box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
-
   body {
     margin: 0;
-    background: var(--page);
-    color: var(--ink);
+    background: radial-gradient(ellipse 120% 60% at 50% -10%, var(--horizon), var(--ink) 65%);
+    color: var(--text);
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px 96px; }
 
-  .wrap {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 0 24px 72px;
-  }
-
-  header {
-    padding: 48px 0 28px;
-  }
-
+  header { padding: 56px 0 24px; text-align: center; }
   .eyebrow {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
   }
-
   h1 {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
-    font-size: clamp(32px, 5vw, 48px);
+    font-size: clamp(28px, 5vw, 42px);
     margin: 8px 0 4px;
-    letter-spacing: -0.025em;
   }
-
   .coords {
     font-family: 'JetBrains Mono', monospace;
     color: var(--muted);
     font-size: 13px;
   }
 
-  .top-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
-    gap: 20px;
-    margin-top: 30px;
-  }
-
+  /* --- readout strumento --- */
   .readout {
-    min-height: 250px;
-    background: var(--panel);
-    border: 1px solid var(--border);
+    margin: 40px auto 0;
+    max-width: 360px;
+    background: linear-gradient(180deg, rgba(207,232,255,0.06), rgba(207,232,255,0.01));
+    border: 1px solid rgba(207,232,255,0.18);
     border-radius: 18px;
-    padding: 30px 28px;
-    box-shadow: 0 8px 30px rgba(20, 35, 60, 0.06);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 32px 24px;
+    text-align: center;
   }
-
-  .readout-label {
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 12px;
-  }
-
   .readout .value {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: clamp(52px, 7vw, 72px);
+    font-size: 64px;
     font-variant-numeric: tabular-nums;
-    color: var(--blue);
+    color: var(--starlight);
+    text-shadow: 0 0 24px rgba(207,232,255,0.35);
     line-height: 1;
   }
-
   .readout .unit {
     font-family: 'JetBrains Mono', monospace;
     color: var(--muted);
     font-size: 14px;
-    margin-top: 10px;
+    margin-top: 8px;
   }
-
   .readout .updated {
     margin-top: 18px;
     font-size: 12px;
@@ -122,72 +81,20 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .info-card {
-    background: var(--soft);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-  }
-
-  .info-card.full {
-    grid-column: 1 / -1;
-  }
-
-  .info-label {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 8px;
-  }
-
-  .info-value {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 23px;
-    font-weight: 700;
-  }
-
-  .info-note {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 5px;
-    line-height: 1.4;
-  }
-
-  section { margin-top: 52px; }
-
+  section { margin-top: 64px; }
   h2 {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 700;
-    margin: 0 0 4px;
+    margin-bottom: 4px;
   }
-
-  .section-note {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 18px;
-  }
+  .section-note { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
 
   .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(207,232,255,0.1);
     border-radius: 14px;
     padding: 16px;
-    box-shadow: 0 5px 22px rgba(20, 35, 60, 0.04);
-  }
-
-  #station-map {
-    height: 330px;
-    border-radius: 10px;
-    overflow: hidden;
   }
 
   .range-controls {
@@ -200,110 +107,66 @@
     font-size: 13px;
     color: var(--muted);
   }
-
   .range-controls input[type="date"] {
-    background: #fff;
-    border: 1px solid var(--border);
-    color: var(--ink);
-    padding: 7px 10px;
+    background: var(--deep);
+    border: 1px solid var(--horizon);
+    color: var(--text);
+    padding: 6px 10px;
     border-radius: 8px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
   }
-
   .range-controls button {
-    background: var(--blue);
-    color: #fff;
+    background: var(--starlight);
+    color: var(--ink);
     border: none;
-    padding: 8px 16px;
+    padding: 7px 16px;
     border-radius: 8px;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
     cursor: pointer;
   }
-
-  .range-controls button:hover { opacity: 0.88; }
+  .range-controls button:hover { opacity: 0.85; }
 
   footer {
-    margin-top: 60px;
-    padding-top: 22px;
-    border-top: 1px solid var(--border);
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--horizon);
     color: var(--muted);
     font-size: 13px;
     line-height: 1.6;
   }
 
-  @media (max-width: 760px) {
-    .wrap { padding-left: 16px; padding-right: 16px; }
-    header { padding-top: 32px; }
-    .top-grid { grid-template-columns: 1fr; }
-    .readout { min-height: 220px; }
-    #station-map { height: 280px; }
-  }
-
   @media (prefers-reduced-motion: no-preference) {
-    header, .top-grid, section { animation: fade-up 0.5s ease both; }
+    header, .readout, section { animation: fade-up 0.6s ease both; }
     section:nth-of-type(2) { animation-delay: 0.05s; }
-    section:nth-of-type(3) { animation-delay: 0.10s; }
+    section:nth-of-type(3) { animation-delay: 0.1s; }
   }
-
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(7px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
-
 <body>
 <div class="wrap">
 
   <header>
-    <div class="eyebrow">Rete Buiometri</div>
+    <div class="eyebrow">Buiometro &middot; MEDIA MONTAGNA - Astrobricchi </div>
     <h1>Crocefieschi</h1>
-    <div class="coords">44.393°N&nbsp; 8.975°E · 850 m s.l.m.</div>
-  </header>
+    <div class="coords">44.393&deg;N&nbsp; 8.975&deg;E &middot; 850&nbsp;m s.l.m.</div>
 
-  <div class="top-grid">
     <div class="readout">
-      <div class="readout-label">Media delle 3 ore più buie</div>
-      <div class="value" id="night-average">—</div>
-      <div class="unit">mag / arcsec² · Sky Quality Meter</div>
-      <div class="updated" id="night-period">calcolo in corso…</div>
+      <div class="value" id="live-value">&mdash;</div>
+      <div class="unit">mag / arcsec&sup2; (Sky Quality Meter)</div>
+      <div class="updated" id="live-updated">in caricamento&hellip;</div>
     </div>
-
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="info-label">Prossimo tramonto</div>
-        <div class="info-value" id="next-sunset">—</div>
-        <div class="info-note" id="sunset-date">calcolo in corso…</div>
-      </div>
-
-      <div class="info-card">
-        <div class="info-label">Fase lunare</div>
-        <div class="info-value" id="moon-phase">—</div>
-        <div class="info-note" id="moon-illumination">—</div>
-      </div>
-
-      <div class="info-card full">
-        <div class="info-label">Stazione</div>
-        <div class="info-value">Crocefieschi</div>
-        <div class="info-note">44.3934° N · 8.97509° E · 850 m s.l.m.</div>
-      </div>
-    </div>
-  </div>
-
-  <section>
-    <h2>Posizione del buiometro</h2>
-    <div class="section-note">Localizzazione della stazione di misura.</div>
-    <div class="panel">
-      <div id="station-map"></div>
-    </div>
-  </section>
+  </header>
 
   <section>
     <h2>Ultime due notti</h2>
-    <div class="section-note">Andamento della luminosità del cielo, aggiornato ad ogni lettura del buiometro.</div>
+    <div class="section-note">Andamento della luminosit&agrave; del cielo, aggiornato ad ogni lettura del buiometro.</div>
     <div class="panel"><div id="chart-recent" style="height:420px;"></div></div>
   </section>
 
@@ -321,101 +184,70 @@
   </section>
 
   <footer>
-    Progetto di Media Montagna - The Outdoor Inside.
     Stazione basata su uno Sky Quality Meter Unihedron SQM-LU, alimentata a pannello solare.
-    I valori sono espressi in magnitudini per arcosecondo quadrato: più alto il numero, più buio (e stellato) il cielo.
+    I valori sono espressi in magnitudini per arcosecondo quadrato: pi&ugrave; alto il numero, pi&ugrave; buio (e stellato) il cielo.
   </footer>
 
 </div>
 
 <script>
-  // --- CONFIGURAZIONE ---
+  // --- CONFIGURAZIONE: da compilare dopo aver creato il progetto Supabase ---
   const SUPABASE_URL = "https://vwqrpwijdxynbdnpgonh.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3cXJwd2lqZHh5bmJkbnBnb25nIiwiaWF0IjoxNzg3NzM3ODEsImV4cCI6MjEwMzMwOTc4MX0.ITL7a8eud3EWwwHPjTr7JmosFjLJMGYrFRjRiL-Mi7E";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3cXJwd2lqZHh5bmJkbnBnb25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MzM3ODEsImV4cCI6MjEwMzMwOTc4MX0.ITL7a8eud3EWwwHPjTr7JmosFjLJMGYrFRjRiL-Mi7E";
+  
   const STATION_ID = "crocefieschi";
-  const LAT = 44.3934;
-  const LON = 8.97509;
-  // -----------------------
+  // ---------------------------------------------------------------------
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Fasce Bortle usate nei grafici.
+  const LAT = 44.3934;
+  const LON = 8.97509;
+
+  // Stessa scala di colori usata in plot_2nights.py (bortle_zones)
   const bortleZones = [
-    [21.75, 22.00, 'Classe 1 · Excellent Dark', 'rgba(35,95,165,0.24)'],
-    [21.60, 21.75, 'Classe 2 · Dark', 'rgba(55,115,190,0.22)'],
-    [21.30, 21.60, 'Classe 3 · Rural', 'rgba(75,135,205,0.20)'],
-    [20.30, 21.30, 'Classe 4 · Rural/suburban', 'rgba(100,150,215,0.18)'],
-    [19.25, 20.30, 'Classe 5 · Suburban', 'rgba(125,165,220,0.16)'],
-    [18.50, 19.25, 'Classe 6 · Bright suburban', 'rgba(150,180,225,0.14)'],
-    [18.00, 18.50, 'Classe 7 · Suburban/city', 'rgba(175,195,230,0.13)'],
-    [14.00, 18.00, 'Classe 8–9 · City', 'rgba(200,205,220,0.12)'],
+    [21.75, 22.00, 'Excellent Dark', 'rgba(0,19,33,0.35)'],
+    [21.60, 21.75, 'Dark', 'rgba(33,61,101,0.30)'],
+    [21.30, 21.60, 'Rural', 'rgba(65,104,163,0.28)'],
+    [20.30, 21.30, 'Rural/suburban', 'rgba(96,142,219,0.24)'],
+    [19.25, 20.30, 'Suburban', 'rgba(120,172,247,0.20)'],
+    [18.50, 19.25, 'Bright suburban', 'rgba(148,198,249,0.18)'],
+    [18.00, 18.50, 'Suburban/city', 'rgba(185,220,250,0.15)'],
+    [14.00, 18.00, 'City', 'rgba(231,245,254,0.10)'],
   ];
 
   function bortleShapes() {
     return bortleZones.map(([y0, y1, label, color]) => ({
-      type: 'rect',
-      xref: 'paper', x0: 0, x1: 1,
+      type: 'rect', xref: 'paper', x0: 0, x1: 1,
       yref: 'y', y0, y1,
-      fillcolor: color,
-      line: { width: 0 },
-      layer: 'below'
-    }));
-  }
-
-  function bortleAnnotations() {
-    return bortleZones.map(([y0, y1, label]) => ({
-      xref: 'paper',
-      x: 0.012,
-      yref: 'y',
-      y: (y0 + y1) / 2,
-      text: label,
-      showarrow: false,
-      xanchor: 'left',
-      yanchor: 'middle',
-      font: {
-        family: 'Inter, sans-serif',
-        size: 10,
-        color: '#536070'
-      },
-      bgcolor: 'rgba(255,255,255,0.68)',
-      bordercolor: 'rgba(120,135,155,0.18)',
-      borderwidth: 1,
-      borderpad: 3
+      fillcolor: color, line: { width: 0 }, layer: 'below',
     }));
   }
 
   const plotLayout = {
-    paper_bgcolor: "#ffffff",
-    plot_bgcolor: "#ffffff",
-    font: { color: "#172033", family: "Inter, sans-serif" },
-    margin: { t: 10, r: 55, b: 40, l: 55 },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    font: { color: "#eaf0fc", family: "Inter, sans-serif" },
+    margin: { t: 10, r: 50, b: 40, l: 55 },
     shapes: bortleShapes(),
-    annotations: bortleAnnotations(),
     xaxis: {
-      gridcolor: "#e8ecf2",
-      tickfont: { color: "#697386" },
+      gridcolor: "rgba(207,232,255,0.08)",
       tickformat: "%H",
-      dtick: 7200000
+      dtick: 7200000, // 2 ore, come HourLocator(interval=2) in Python
     },
     yaxis: {
-      title: "MPAS [mag/arcsec²]",
-      titlefont: { color: "#697386" },
-      tickfont: { color: "#697386" },
-      gridcolor: "#e8ecf2",
-      range: [14, 22]
+      title: "MPAS [mag/arcsec\u00b2]",
+      gridcolor: "rgba(207,232,255,0.08)",
+      range: [14, 22],
     },
     yaxis2: {
-      title: "Altitudine luna (°)",
-      titlefont: { color: "#697386" },
-      tickfont: { color: "#697386" },
+      title: "Altitudine luna (\u00b0)",
       overlaying: "y",
       side: "right",
       range: [0, 90],
-      gridcolor: "rgba(0,0,0,0)"
+      gridcolor: "rgba(0,0,0,0)",
     },
-    legend: { orientation: "h", x: 0, y: 1.12 }
+    legend: { orientation: "h", x: 0, y: 1.12 },
   };
-
   const plotConfig = { displayModeBar: false, responsive: true };
 
   function moonAltitudeSeries(rows) {
@@ -427,209 +259,46 @@
   }
 
   function tracesFrom(rows) {
-    return [
-      {
-        x: rows.map(r => r.ts),
-        y: rows.map(r => r.sqm),
-        type: "scatter",
-        mode: "lines",
-        name: "SQM",
-        line: { color: "#1c3fa8", width: 2 }
-      },
-      {
-        x: rows.map(r => r.ts),
-        y: moonAltitudeSeries(rows),
-        type: "scatter",
-        mode: "lines",
-        name: "Luna",
-        yaxis: "y2",
-        line: { color: "#8a94a8", width: 1, dash: "dash" }
-      }
-    ];
+    const sqmTrace = {
+      x: rows.map(r => r.ts),
+      y: rows.map(r => r.sqm),
+      type: "scatter",
+      mode: "lines",
+      name: "SQM",
+      line: { color: "#1c3fa8", width: 2 },
+    };
+    const moonTrace = {
+      x: rows.map(r => r.ts),
+      y: moonAltitudeSeries(rows),
+      type: "scatter",
+      mode: "lines",
+      name: "Luna",
+      yaxis: "y2",
+      line: { color: "#8291b8", width: 1, dash: "dash" },
+    };
+    return [sqmTrace, moonTrace];
   }
 
-  function formatTime(date) {
-    return date.toLocaleTimeString("it-IT", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  }
-
-  function formatDate(date) {
-    return date.toLocaleDateString("it-IT", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    });
-  }
-
-  // Restituisce la fase lunare in italiano.
-  function moonPhaseName(phase) {
-    if (phase < 0.03 || phase >= 0.97) return "Luna nuova";
-    if (phase < 0.22) return "Luna crescente";
-    if (phase < 0.28) return "Primo quarto";
-    if (phase < 0.47) return "Gibbosa crescente";
-    if (phase < 0.53) return "Luna piena";
-    if (phase < 0.72) return "Gibbosa calante";
-    if (phase < 0.78) return "Ultimo quarto";
-    return "Luna calante";
-  }
-
-  function initMap() {
-    const map = L.map("station-map", {
-      scrollWheelZoom: false
-    }).setView([LAT, LON], 13);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    L.marker([LAT, LON])
-      .addTo(map)
-      .bindPopup("<strong>Buiometro di Crocefieschi</strong><br>44.3934° N · 8.97509° E")
-      .openPopup();
-  }
-
-  function updateAstronomy() {
-    const now = new Date();
-    const todayTimes = SunCalc.getTimes(now, LAT, LON);
-
-    // "Prossimo tramonto": quello di oggi se non è ancora passato,
-    // altrimenti quello di domani.
-    let sunset = todayTimes.sunset;
-    if (sunset <= now) {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      sunset = SunCalc.getTimes(tomorrow, LAT, LON).sunset;
-    }
-
-    document.getElementById("next-sunset").textContent = formatTime(sunset);
-    document.getElementById("sunset-date").textContent =
-      sunset.toDateString() === now.toDateString()
-        ? "oggi"
-        : "domani";
-
-    const moon = SunCalc.getMoonIllumination(now);
-    const phaseName = moonPhaseName(moon.phase);
-    const illumination = Math.round(moon.fraction * 100);
-
-    document.getElementById("moon-phase").textContent = phaseName;
-    document.getElementById("moon-illumination").textContent =
-      illumination + "% di illuminazione";
-  }
-
-  async function loadNightAverage() {
-    const now = new Date();
-
-    // Individuiamo l'ultima notte COMPLETAMENTE trascorsa:
-    // dal tramonto alla successiva alba.
-    let endDate = new Date(now);
-    let endTimes = SunCalc.getTimes(endDate, LAT, LON);
-
-    if (now < endTimes.sunrise) {
-      endDate.setDate(endDate.getDate() - 1);
-      endTimes = SunCalc.getTimes(endDate, LAT, LON);
-    }
-
-    const sunrise = endTimes.sunrise;
-
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 1);
-    const startTimes = SunCalc.getTimes(startDate, LAT, LON);
-    const sunset = startTimes.sunset;
-
+  async function loadLive() {
     const { data, error } = await sb
       .from("readings")
       .select("ts, sqm")
       .eq("station_id", STATION_ID)
-      .gte("ts", sunset.toISOString())
-      .lte("ts", sunrise.toISOString())
-      .order("ts", { ascending: true });
+      .order("ts", { ascending: false })
+      .limit(1);
 
-    const valueEl = document.getElementById("night-average");
-    const periodEl = document.getElementById("night-period");
-
-    if (error) {
-      console.error(error);
-      valueEl.textContent = "—";
-      periodEl.textContent = "errore nel caricamento dei dati";
+    if (error || !data || !data.length) {
+      document.getElementById("live-updated").textContent = "nessun dato disponibile";
       return;
     }
-
-    const rows = (data || [])
-      .map(r => ({ ts: new Date(r.ts), sqm: Number(r.sqm) }))
-      .filter(r => Number.isFinite(r.sqm));
-
-    if (!rows.length) {
-      valueEl.textContent = "—";
-      periodEl.textContent = "nessuna misura disponibile per l'ultima notte";
-      return;
-    }
-
-    // "Parte più buia della notte": finestra mobile di 3 ore.
-    // Per ogni misura consideriamo tutte le letture nei 180 minuti
-    // successivi e cerchiamo la finestra con la media SQM più alta.
-    // Un valore SQM maggiore = cielo più buio.
-    const WINDOW_MS = 3 * 60 * 60 * 1000;
-    const MIN_WINDOW_COVERAGE_MS = 2 * 60 * 60 * 1000;
-
-    let best = null;
-
-    for (let i = 0; i < rows.length; i++) {
-      const windowStart = rows[i].ts;
-      const windowEnd = new Date(windowStart.getTime() + WINDOW_MS);
-
-      const windowRows = rows.filter(r =>
-        r.ts >= windowStart && r.ts <= windowEnd
-      );
-
-      if (windowRows.length < 2) continue;
-
-      const coverage =
-        windowRows[windowRows.length - 1].ts - windowRows[0].ts;
-
-      if (coverage < MIN_WINDOW_COVERAGE_MS) continue;
-
-      const avg =
-        windowRows.reduce((sum, r) => sum + r.sqm, 0) / windowRows.length;
-
-      if (!best || avg > best.average) {
-        best = {
-          start: windowRows[0].ts,
-          end: windowRows[windowRows.length - 1].ts,
-          average: avg,
-          count: windowRows.length
-        };
-      }
-    }
-
-    // Se i dati sono troppo radi per una finestra di almeno 2 ore,
-    // usiamo comunque il periodo più lungo disponibile, senza inventare dati.
-    if (!best) {
-      const average =
-        rows.reduce((sum, r) => sum + r.sqm, 0) / rows.length;
-
-      best = {
-        start: rows[0].ts,
-        end: rows[rows.length - 1].ts,
-        average,
-        count: rows.length
-      };
-    }
-
-    valueEl.textContent = best.average.toFixed(2);
-
-    periodEl.textContent =
-      "finestra più buia · " +
-      formatTime(best.start) + " → " +
-      formatTime(best.end) +
-      " · " + best.count + " misure";
+    const last = data[0];
+    document.getElementById("live-value").textContent = Number(last.sqm).toFixed(2);
+    document.getElementById("live-updated").textContent =
+      "ultima lettura: " + new Date(last.ts).toLocaleString("it-IT");
   }
 
   async function loadRecent() {
     const since = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
-
     const { data, error } = await sb
       .from("readings")
       .select("ts, sqm")
@@ -637,17 +306,8 @@
       .gte("ts", since)
       .order("ts", { ascending: true });
 
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    Plotly.newPlot(
-      "chart-recent",
-      tracesFrom(data || []),
-      plotLayout,
-      plotConfig
-    );
+    if (error) { console.error(error); return; }
+    Plotly.newPlot("chart-recent", tracesFrom(data || []), plotLayout, plotConfig);
   }
 
   async function loadHistory(startDate, endDate) {
@@ -659,17 +319,8 @@
       .lte("ts", endDate)
       .order("ts", { ascending: true });
 
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    Plotly.newPlot(
-      "chart-history",
-      tracesFrom(data || []),
-      plotLayout,
-      plotConfig
-    );
+    if (error) { console.error(error); return; }
+    Plotly.newPlot("chart-history", tracesFrom(data || []), plotLayout, plotConfig);
   }
 
   document.getElementById("range-load").addEventListener("click", () => {
@@ -678,17 +329,13 @@
     if (start && end) loadHistory(start, end + "T23:59:59");
   });
 
+  // Valori iniziali dei date picker: ultima settimana
   const today = new Date();
   const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  document.getElementById("range-end").value = today.toISOString().slice(0, 10);
+  document.getElementById("range-start").value = weekAgo.toISOString().slice(0, 10);
 
-  document.getElementById("range-end").value =
-    today.toISOString().slice(0, 10);
-  document.getElementById("range-start").value =
-    weekAgo.toISOString().slice(0, 10);
-
-  initMap();
-  updateAstronomy();
-  loadNightAverage();
+  loadLive();
   loadRecent();
   loadHistory(weekAgo.toISOString(), today.toISOString());
 </script>
